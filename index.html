@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LIONESS Auto Serwis — v3.3 FINAL</title>
+<style>
+:root{--bg1:#071a33;--bg2:#0f2b4a;--accent:#2bb673;--red:#e05252;--gold:#d4af37}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff;-webkit-font-smoothing:antialiased}
+.app{display:flex;max-width:1200px;margin:18px auto;gap:18px;padding:12px;width:calc(100% - 40px)}
+.sidebar{width:280px;background:rgba(255,255,255,0.03);border-radius:12px;padding:18px;flex-shrink:0}
+.brand{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.logo{font-size:28px;font-weight:800;color:#fff;letter-spacing:1px}
+.subtitle{font-size:12px;opacity:0.9}
+.menu{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.menu-btn{background:transparent;border:none;color:inherit;padding:10px 12px;border-radius:8px;text-align:left;cursor:pointer;font-weight:700}
+.menu-btn.active{background:rgba(255,255,255,0.04);color:var(--gold)}
+.lang{display:flex;gap:8px;margin-top:14px}
+.lang-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:6px 8px;border-radius:8px;color:inherit;cursor:pointer}
+.copy{margin-top:18px;font-size:12px;opacity:0.8;text-align:center}
+.main{flex:1;display:flex;flex-direction:column;min-height:640px;background:rgba(255,255,255,0.02);border-radius:12px;padding:18px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.top-right{display:flex;gap:8px;align-items:center}
+.service-switch{display:flex;gap:8px;margin-bottom:8px}
+.service-btn{padding:8px 10px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:inherit;cursor:pointer;font-weight:700}
+.service-btn.active{background:var(--gold);color:#06243b}
+.content{flex:1;overflow:auto;padding:6px}
+.h1{font-size:36px;margin:0 0 12px 0}
+.p{font-size:16px;opacity:0.95;margin-bottom:12px}
+.btn{background:#fff;color:#06243b;padding:8px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+.btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#fff}
+.card{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;margin-bottom:12px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{background:rgba(255,255,255,0.01);padding:10px;border-radius:8px;min-height:90px;cursor:pointer;position:relative}
+.day .date{font-weight:700;margin-bottom:6px}
+.time-slots{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.slot{padding:6px 8px;border-radius:6px;background:rgba(255,255,255,0.03);cursor:pointer;border:1px solid rgba(255,255,255,0.03)}
+.slot.free{background:rgba(43,182,115,0.18);border-color:rgba(43,182,115,0.28);color:var(--accent)}
+.slot.busy{background:rgba(224,82,82,0.12);border-color:rgba(224,82,82,0.22);color:var(--red);cursor:pointer;opacity:0.95}
+.slot.selected{outline:2px solid rgba(255,255,255,0.08);box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border:1px solid rgba(255,255,255,0.04);padding:8px;text-align:left}
+.input-inline{display:flex;gap:8px}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.6);z-index:60}
+.modal-sheet{background:linear-gradient(180deg,#0b2036,#0b2740);padding:18px;border-radius:10px;width:720px;color:#fff;max-height:90vh;overflow:auto}
+.footer{margin-top:12px;font-size:13px;opacity:0.8;text-align:center}
+.note-area{width:100%;height:80px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff}
+.small{font-size:13px;opacity:0.9}
+@media(max-width:900px){.app{flex-direction:column}.sidebar{width:100%}}
+label{display:block;margin-top:8px;margin-bottom:4px;font-weight:700}
+input[type="text"], input[type="date"], input[type="time"], select, textarea{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff}
+.row{display:flex;gap:8px}
+.col{flex:1}
+.action-link{background:transparent;border:none;color:var(--accent);cursor:pointer;text-decoration:underline;padding:0}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">LIONESS</div>
+      <div class="subtitle">AUTO SERWIS</div>
+    </div>
+    <nav class="menu" id="menu">
+      <button class="menu-btn active" data-section="glowna">Główna</button>
+      <button class="menu-btn" data-section="uslugi">Usługi</button>
+      <button class="menu-btn" data-section="kalendarz">Kalendarz</button>
+      <button class="menu-btn" data-section="promocje">Promocje</button>
+      <button class="menu-btn" data-section="depozyt">Depozyt opon</button>
+      <button class="menu-btn" data-section="sprzedaz">Sprzedaż opon</button>
+      <button class="menu-btn" data-section="mobilna">Zamów mobilną wulkanizację</button>
+      <button class="menu-btn" data-section="serwis">Zamów Auto Serwis</button>
+      <button class="menu-btn" data-section="laweta">Zamów Lawetę</button>
+    </nav>
+    <div class="lang">
+      <button id="lang-pl" class="lang-btn active">PL</button>
+      <button id="lang-ua" class="lang-btn">UA</button>
+      <button id="lang-en" class="lang-btn">EN</button>
+    </div>
+    <div class="copy">© 2025 LIONESS Auto Serwis</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="top-left">
+        <div class="logo-small">LIONESS Auto Serwis</div>
+      </div>
+      <div class="top-right" id="top-right">
+        <button id="book-quick" class="btn">Umów wizytę</button>
+      </div>
+    </header>
+
+    <section id="content" class="content">
+      <!-- dynamic content -->
+    </section>
+  </main>
+</div>
+
+<!-- Booking modal (view/edit) -->
+<div id="modal" class="modal" aria-hidden="true">
+  <div class="modal-sheet" id="modal-sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <h3 id="modal-title">Rezerwacja</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="service-switch">
+          <button class="service-btn active" data-type="serwis">Auto Serwis</button>
+          <button class="service-btn" data-type="mobilna">Mobilna Wulkanizacja</button>
+          <button class="service-btn" data-type="laweta">Laweta</button>
+        </div>
+        <button id="print-day" class="btn secondary">Drukuj dzień</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Usługa</label>
+        <select id="modal-service"></select>
+      </div>
+      <div class="col">
+        <label>Data</label>
+        <input id="modal-date" type="date">
+      </div>
+    </div>
+
+    <label>Godzina</label>
+    <div id="modal-times" class="time-slots"></div>
+
+    <label>Imię Nazwisko</label>
+    <input id="modal-name" type="text">
+
+    <label>Telefon</label>
+    <input id="modal-phone" type="text">
+
+    <label>Rejestracja auta</label>
+    <input id="modal-reg" type="text" placeholder="NP. WP12345">
+
+    <div id="modal-depo-link" style="margin-top:8px"></div>
+
+    <div class="field"><label>Adres / lokalizacja (jeśli mobilna)</label><input id="modal-address" type="text" placeholder="(opcjonalnie)"></div>
+
+    <label>Notatka</label>
+    <textarea id="modal-note" class="note-area"></textarea>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+      <button class="btn secondary" id="modal-cancel">Anuluj</button>
+      <button class="btn" id="modal-save">Zapisz rezerwację</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reservation view modal (for busy slot) -->
+<div id="view-modal" class="modal" aria-hidden="true">
+  <div class="modal-sheet" style="width:560px">
+    <h3>Informacje o rezerwacji</h3>
+    <div id="view-content"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+      <button class="btn secondary" id="view-close">Zamknij</button>
+      <button class="btn" id="view-cancel">Anuluj rezerwację</button>
+    </div>
+  </div>
+</div>
+
+<!-- Depozyt modal (add/edit) -->
+<div id="depo-modal" class="modal" aria-hidden="true">
+  <div class="modal-sheet">
+    <h3>Depozyt opon — dodaj / edytuj</h3>
+    <label>Imię Nazwisko</label><input id="depo-owner" type="text">
+    <label>Telefon</label><input id="depo-phone" type="text">
+    <label>Marka pojazdu</label><input id="depo-brand" type="text">
+    <label>Numer rejestracyjny</label><input id="depo-reg" type="text">
+    <label>Rozmiar</label><input id="depo-size" type="text">
+    <label>Ilość opon</label><input id="depo-qty" type="text">
+    <label>Zużycie</label><input id="depo-wear" type="text">
+    <label>Notatka</label><textarea id="depo-note" class="note-area"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+      <button class="btn secondary" id="depo-cancel">Anuluj</button>
+      <button class="btn" id="depo-save">Zapisz depozyt</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">© 2025 LIONESS Auto Serwis — All Rights Reserved</footer>
+
+<script>
+(function(){
+  const LS_KEY = 'lioness.v3.3.final';
+  const defaultData = {
+    services:['Sezonowa wymiana opon (R20) - 150.00 zł','Diagnostyka - 80.00 zł','Wymiana oleju - 120.00 zł'],
+    promotions:[],
+    depozyt:[],
+    sprzedaz:[],
+    bookings:[],
+    notes:{}
+  };
+  let state = JSON.parse(localStorage.getItem(LS_KEY) || 'null') || defaultData;
+  function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+  const i18n = {
+    pl: {glowna:'Główna', uslugi:'Usługi', kalendarz:'Kalendarz', promocje:'Promocje', depozyt:'Depozyt opon', sprzedaz:'Sprzedaż opon', mobilna:'Zamów mobilną wulkanizację', serwis:'Zamów Auto Serwis', laweta:'Zamów Lawetę', book:'Umów wizytę', reserve:'Rezerwacja', notes:'Notatki', save:'Zapisz', cancel:'Anuluj', printday:'Drukuj dzień'},
+    ua: {glowna:'Головна', uslugi:'Послуги', kalendarz:'Календар', promocje:'Промо', depozyt:'Депозит шин', sprzedaz:'Продаж шин', mobilna:'Замовити моб. вулк.', serwis:'Замовити сервіс', laweta:'Замовити евакуатор', book:'Записатись', reserve:'Резервація', notes:'Нотатки', save:'Зберегти', cancel:'Відмінити', printday:'Друк дня'},
+    en: {glowna:'Home', uslugi:'Services', kalendarz:'Calendar', promocje:'Promotions', depozyt:'Tyre depot', sprzedaz:'Tyre sales', mobilna:'Order mobile', serwis:'Order service', laweta:'Order tow', book:'Book', reserve:'Reservation', notes:'Notes', save:'Save', cancel:'Cancel', printday:'Print day'}
+  };
+  let lang = localStorage.getItem('lioness.lang') || 'pl';
+
+  // DOM
+  const menuBtns = document.querySelectorAll('.menu-btn');
+  const content = document.getElementById('content');
+  const bookQuick = document.getElementById('book-quick');
+  const langPl = document.getElementById('lang-pl');
+  const langUa = document.getElementById('lang-ua');
+  const langEn = document.getElementById('lang-en');
+
+  const modal = document.getElementById('modal');
+  const modalService = document.getElementById('modal-service');
+  const modalDate = document.getElementById('modal-date');
+  const modalTimes = document.getElementById('modal-times');
+  const modalTitle = document.getElementById('modal-title');
+  const modalName = document.getElementById('modal-name');
+  const modalPhone = document.getElementById('modal-phone');
+  const modalReg = document.getElementById('modal-reg');
+  const modalNote = document.getElementById('modal-note');
+  const modalAddress = document.getElementById('modal-address');
+  const modalDepoLink = document.getElementById('modal-depo-link');
+
+  const viewModal = document.getElementById('view-modal');
+  const viewContent = document.getElementById('view-content');
+  const viewClose = document.getElementById('view-close');
+  const viewCancel = document.getElementById('view-cancel');
+
+  const depoModal = document.getElementById('depo-modal');
+  const depoOwner = document.getElementById('depo-owner');
+  const depoPhone = document.getElementById('depo-phone');
+  const depoBrand = document.getElementById('depo-brand');
+  const depoReg = document.getElementById('depo-reg');
+  const depoSize = document.getElementById('depo-size');
+  const depoQty = document.getElementById('depo-qty');
+  const depoWear = document.getElementById('depo-wear');
+  const depoNote = document.getElementById('depo-note');
+
+  // events
+  menuBtns.forEach(b=>b.addEventListener('click', ()=>{ menuBtns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderSection(b.dataset.section); }));
+  langPl.addEventListener('click', ()=>{ setLang('pl'); });
+  langUa.addEventListener('click', ()=>{ setLang('ua'); });
+  langEn.addEventListener('click', ()=>{ setLang('en'); });
+  bookQuick.addEventListener('click', ()=> openBookingModal('serwis'));
+
+  document.getElementById('modal-cancel').onclick = ()=> { modal.style.display='none'; }
+  document.getElementById('modal-save').onclick = saveBooking;
+
+  viewClose.onclick = ()=> { viewModal.style.display='none'; }
+  viewCancel.onclick = viewCancelBooking;
+
+  document.getElementById('depo-cancel').onclick = ()=> { depoModal.style.display='none'; }
+  document.getElementById('depo-save').onclick = saveDepo;
+
+  // helpers
+  function setLang(l){ lang = l; localStorage.setItem('lioness.lang', l); const map = i18n[l]; const keys = ['glowna','uslugi','kalendarz','promocje','depozyt','sprzedaz','mobilna','serwis','laweta']; const btns = document.querySelectorAll('.menu-btn'); btns.forEach((btn,i)=>{ btn.textContent = map[keys[i]]; }); document.getElementById('book-quick').textContent = map.book; const active = document.querySelector('.menu-btn.active'); if(active) renderSection(active.dataset.section); }
+
+  // render
+  renderSection('glowna');
+  setLang(lang);
+
+  function renderSection(section){
+    if(section==='glowna'){ renderHome(); return; }
+    if(section==='uslugi'){ renderServices(); return; }
+    if(section==='kalendarz'){ renderCalendar('general'); return; }
+    if(section==='promocje'){ renderPromotions(); return; }
+    if(section==='depozyt'){ renderDepozyt(); return; }
+    if(section==='sprzedaz'){ renderSprzedaz(); return; }
+    if(section==='mobilna'){ renderCalendar('mobilna'); return; }
+    if(section==='serwis'){ renderCalendar('serwis'); return; }
+    if(section==='laweta'){ renderLawetaForm(); return; }
+  }
+
+  function renderHome(){
+    content.innerHTML = `<div class="hero"><h1 class="h1">Zaufaj profesjonalistom.</h1><div class="p">Kompleksowa obsługa Twojego samochodu</div><div class="cta"><button class="btn" id="book-home">${i18n[lang].book}</button></div></div>`;
+    document.getElementById('book-home').addEventListener('click', ()=> openBookingModal('serwis'));
+  }
+
+  function renderServices(){
+    let html = '<div class="card"><h2>Usługi (edytowalne)</h2><div id="srv-list"></div><div style="margin-top:10px"><input id="new-srv" placeholder="Nowa usługa" style="width:70%"><button class="btn" id="add-srv">Dodaj</button></div></div>';
+    content.innerHTML = html;
+    const list = document.getElementById('srv-list');
+    state.services.forEach((s,idx)=>{ const div=document.createElement('div'); div.className='card'; div.style.marginTop='8px'; div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div>${s}</div><div><button class="btn del-srv" data-i="${idx}">Usuń</button></div></div>`; list.appendChild(div); });
+    document.getElementById('add-srv').onclick = ()=>{ const v=document.getElementById('new-srv').value.trim(); if(v){ state.services.push(v); save(); renderServices(); } };
+    document.querySelectorAll('.del-srv').forEach(b=>b.onclick = (e)=>{ const i=Number(e.target.dataset.i); state.services.splice(i,1); save(); renderServices(); });
+  }
+
+  function renderPromotions(){
+    let html = '<div class="card"><h2>Promocje (max 20s)</h2><div id="promo-list"></div><textarea id="promo-txt" rows="3" style="width:100%"></textarea><div style="margin-top:8px"><button class="btn" id="save-promo">Zapisz</button></div></div>';
+    content.innerHTML = html;
+    const list = document.getElementById('promo-list');
+    state.promotions.forEach((p,idx)=>{ const d=document.createElement('div'); d.className='card'; d.style.marginTop='8px'; d.innerHTML = `<div>${p}</div><div style="margin-top:6px"><button class="btn del-p" data-i="${idx}">Usuń</button></div>`; list.appendChild(d); });
+    document.getElementById('save-promo').onclick = ()=>{ const v=document.getElementById('promo-txt').value.trim(); if(v){ state.promotions.push(v); save(); renderPromotions(); document.getElementById('promo-txt').value=''; } };
+    document.querySelectorAll('.del-p').forEach(b=>b.onclick=(e)=>{ state.promotions.splice(Number(e.target.dataset.i),1); save(); renderPromotions(); });
+  }
+
+  function renderDepozyt(){
+    let html = '<div class="card"><h2>Depozyt opon (arkusz)</h2><div style="display:flex;justify-content:space-between;align-items:center"><div></div><div><button class="btn" id="add-dep">Dodaj depozyt</button></div></div><table class="table" style="margin-top:10px"><thead><tr><th>Imię Nazwisko</th><th>Telefon</th><th>Marka</th><th>Rejestracja</th><th>Rozmiar</th><th>Ilość</th><th>Zużycie</th><th>Notatka</th><th>Akcje</th></tr></thead><tbody id="depo-body"></tbody></table></div>';
+    content.innerHTML = html;
+    const tbody = document.getElementById('depo-body'); tbody.innerHTML = '';
+    state.depozyt.forEach((r,idx)=>{ const tr=document.createElement('tr'); tr.innerHTML = `<td>${r.owner}</td><td>${r.phone}</td><td>${r.brand}</td><td>${r.reg}</td><td>${r.size}</td><td>${r.qty}</td><td>${r.wear}</td><td>${r.note}</td><td><button class="action-link" data-i="${idx}" data-action="edit">Edytuj</button> | <button class="action-link" data-i="${idx}" data-action="del">Usuń</button></td>`; tbody.appendChild(tr); });
+    document.getElementById('add-dep').onclick = ()=> openDepoModal();
+    document.querySelectorAll('.action-link').forEach(b=> b.addEventListener('click',(e)=>{ const i=Number(e.target.dataset.i); const a=e.target.dataset.action; if(a==='edit') openDepoModal(i); else { if(confirm('Usuń depozyt?')){ state.depozyt.splice(i,1); save(); renderDepozyt(); } } }));
+  }
+
+  function openDepoModal(idx){
+    depoModal.style.display='flex';
+    if(typeof idx === 'number'){
+      const r = state.depozyt[idx];
+      depoOwner.value = r.owner; depoPhone.value = r.phone; depoBrand.value=r.brand; depoReg.value=r.reg; depoSize.value=r.size; depoQty.value=r.qty; depoWear.value=r.wear; depoNote.value=r.note;
+      depoModal.dataset.edit = idx;
+    } else {
+      depoOwner.value=''; depoPhone.value=''; depoBrand.value=''; depoReg.value=''; depoSize.value=''; depoQty.value=''; depoWear.value=''; depoNote.value='';
+      delete depoModal.dataset.edit;
+    }
+    function tryAutoFill(){
+      const phone = depoPhone.value.trim(); const reg = depoReg.value.trim().toUpperCase();
+      const found = state.depozyt.find(d => (phone && d.phone===phone) || (reg && d.reg && d.reg.toUpperCase()===reg));
+      if(found){
+        depoOwner.value = found.owner; depoBrand.value = found.brand; depoSize.value = found.size; depoQty.value = found.qty; depoWear.value = found.wear; depoNote.value = found.note;
+      }
+    }
+    depoPhone.oninput = tryAutoFill; depoReg.oninput = tryAutoFill;
+  }
+
+  function saveDepo(){
+    const owner = depoOwner.value.trim(); const phone=depoPhone.value.trim(); const brand=depoBrand.value.trim(); const reg=depoReg.value.trim(); const size=depoSize.value.trim(); const qty=depoQty.value.trim(); const wear=depoWear.value.trim(); const note=depoNote.value.trim();
+    if(!owner || !phone){ alert('Wypełnij imię i telefon'); return; }
+    if(typeof depoModal.dataset.edit !== 'undefined'){
+      const idx = Number(depoModal.dataset.edit);
+      state.depozyt[idx] = {id:state.depozyt[idx].id, owner, phone, brand, reg, size, qty, wear, note};
+    } else {
+      state.depozyt.push({id:Date.now(), owner, phone, brand, reg, size, qty, wear, note});
+    }
+    save(); depoModal.style.display='none'; renderDepozyt();
+  }
+
+  function renderSprzedaz(){
+    let html = '<div class="card"><h2>Sprzedaż opon</h2><table class="table"><thead><tr><th>Opis Opon</th><th>Marka</th><th>Stan</th><th>Cena Brutto</th><th>Akcje</th></tr></thead><tbody id="sprz-body"></tbody></table><div style="margin-top:8px"><button class="btn" id="add-sprz">Dodaj</button></div></div>';
+    content.innerHTML = html;
+    const tbody = document.getElementById('sprz-body'); tbody.innerHTML = '';
+    state.sprzedaz.forEach((r,idx)=>{ const tr=document.createElement('tr'); tr.innerHTML = `<td>${r.desc}</td><td>${r.brand}</td><td>${r.state}</td><td>${r.price}</td><td><button class="btn del-spr" data-i="${idx}">Usuń</button></td>`; tbody.appendChild(tr); });
+    document.getElementById('add-sprz').onclick = ()=>{ const desc=prompt('Opis Opon'); if(!desc) return; const brand=prompt('Marka'); const st=prompt('Stan'); const price=prompt('Cena Brutto'); state.sprzedaz.push({id:Date.now(), desc, brand, state:st, price}); save(); renderSprzedaz(); };
+    document.querySelectorAll('.del-spr').forEach(b=>b.onclick=(e)=>{ state.sprzedaz.splice(Number(e.target.dataset.i),1); save(); renderSprzedaz(); });
+  }
+
+  // calendar and booking
+  function renderCalendar(type){
+    const now = new Date();
+    const year = now.getFullYear(), month = now.getMonth();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    let html = '<div class="card"><h2>Kalendarz</h2><div class="calendar">';
+    const labels = ['Pn','Wt','Śr','Cz','Pt','So','Nd']; labels.forEach(l=> html += `<div class="day small" style="font-weight:700;text-align:center">${l}</div>`);
+    for(let d=1; d<=daysInMonth; d++){
+      html += `<div class="day card" data-day="${d}"><div class="date">${d}</div><div class="small">Kliknij, aby zarezerwować</div></div>`;
+    }
+    html += '</div><div id="bookings-month" style="margin-top:10px"></div></div>';
+    content.innerHTML = html;
+    document.querySelectorAll('.day[data-day]').forEach(el=> el.addEventListener('click', ()=> openBookingModal(type, el.dataset.day)));
+    refreshBookingsList();
+  }
+
+  function openBookingModal(type, day){
+    modal.style.display='flex';
+    modalTitle.textContent = i18n[lang].reserve + ' - ' + day;
+    document.querySelectorAll('.service-btn').forEach(s=> s.classList.toggle('active', s.dataset.type===type));
+    modal.dataset.type = type;
+    modalService.innerHTML=''; state.services.forEach(s=>{ const opt=document.createElement('option'); opt.value=s; opt.textContent=s; modalService.appendChild(opt); });
+    const now = new Date();
+    const year = now.getFullYear(), month = String(now.getMonth()+1).padStart(2,'0');
+    modalDate.value = `${year}-${month}-${String(day).padStart(2,'0')}`;
+    modalAddress.style.display = (type==='mobilna')? 'block':'none';
+    document.getElementById('modal-address').style.display = (type==='mobilna')? 'block':'none';
+    renderTimesForDate(modalDate.value);
+    modalNote.value = state.notes[modalDate.value] || '';
+    modalName.value=''; modalPhone.value=''; modalReg.value=''; modalDepoLink.innerHTML='';
+  }
+
+  function renderTimesForDate(date){
+    modalTimes.innerHTML='';
+    const type = modal.dataset.type || 'serwis';
+    let start = 8, end = 20;
+    if(type==='mobilna' || type==='laweta'){ start = 0; end = 23; }
+    const slots = [];
+    for(let h=start; h<=end; h++){ slots.push(String(h).padStart(2,'0') + ':00'); }
+    slots.forEach(t=>{
+      const booking = state.bookings.find(b=> b.date===date && b.time===t && b.type===type );
+      const div = document.createElement('div'); div.className='slot ' + (booking? 'busy':'free'); div.textContent = t; div.dataset.time = t;
+      if(booking){
+        div.addEventListener('click', ()=> openViewBooking(booking));
+      } else {
+        div.addEventListener('click', ()=> {
+          document.querySelectorAll('.slot').forEach(s=>s.classList.remove('selected'));
+          div.classList.add('selected');
+        });
+      }
+      modalTimes.appendChild(div);
+    });
+  }
+
+  function saveBooking(){
+    const svc = modalService.value; const date = modalDate.value; const timeEl = document.querySelector('.slot.selected'); const name = modalName.value.trim(); const phone = modalPhone.value.trim(); const reg = modalReg.value.trim().toUpperCase(); const addr = modalAddress.value.trim(); const note = modalNote.value.trim();
+    if(!timeEl){ alert('Wybierz godzinę (zielona = wolna)'); return; }
+    if(!name || !phone){ alert('Podaj imię i telefon'); return; }
+    const time = timeEl.dataset.time;
+    const type = modal.dataset.type || 'serwis';
+    const exists = state.bookings.find(b=> b.date===date && b.time===time && b.type===type);
+    if(exists){ alert('Ten slot już zajęty'); renderTimesForDate(date); return; }
+    const entry = {id:Date.now(), service:svc, date, time, name, phone, reg, addr, type, note};
+    state.bookings.push(entry);
+    if(note) state.notes[date] = note;
+    save(); modal.style.display='none'; alert('Zapisano rezerwację'); renderSection('kalendarz');
+  }
+
+  function openViewBooking(booking){
+    viewContent.innerHTML = `<div><strong>Usługa:</strong> ${booking.service}</div><div><strong>Typ:</strong> ${booking.type}</div><div><strong>Data:</strong> ${booking.date}</div><div><strong>Godzina:</strong> ${booking.time}</div><div><strong>Imię:</strong> ${booking.name}</div><div><strong>Telefon:</strong> ${booking.phone}</div><div><strong>Rejestracja:</strong> ${booking.reg||''}</div><div style="margin-top:8px"><strong>Notatka:</strong><div class="card" style="margin-top:6px;color:#000;background:#fff;padding:8px;border-radius:6px">${booking.note||''}</div></div>`;
+    viewModal.style.display='flex';
+    viewModal.dataset.bookingId = booking.id;
+  }
+
+  function viewCancelBooking(){
+    const id = Number(viewModal.dataset.bookingId);
+    if(!confirm('Na pewno anulować rezerwację?')) return;
+    const idx = state.bookings.findIndex(b=> b.id===id);
+    if(idx>-1){ state.bookings.splice(idx,1); save(); viewModal.style.display='none'; renderSection('kalendarz'); alert('Rezerwacja anulowana'); }
+  }
+
+  function refreshBookingsList(){
+    const div = document.getElementById('bookings-month');
+    if(!div) return;
+    const now = new Date(); const month = now.getMonth()+1; const year=now.getFullYear();
+    const list = state.bookings.filter(b=>{ const dt = new Date(b.date); return dt.getMonth()+1===month && dt.getFullYear()===year; });
+    if(list.length===0) div.innerHTML = '<div class="small">Brak rezerwacji w tym miesiącu</div>';
+    else div.innerHTML = '<ul>'+list.map(b=>'<li>'+b.date+' '+(b.time||'')+' — '+b.service+' — '+b.name+' ('+b.type+')</li>').join('')+'</ul>';
+  }
+
+  function printBookingsForDate(date){
+    const list = state.bookings.filter(b=> b.date===date );
+    let html = `<html><head><title>Rezerwacje - ${date}</title><style>body{font-family:Arial;color:#000}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:8px;text-align:left}</style></head><body>`;
+    html += `<h2>Rezerwacje na ${date}</h2>`;
+    if(list.length===0){ html += '<p>Brak rezerwacji</p>'; }
+    else {
+      html += '<table><thead><tr><th>Godzina</th><th>Usługa</th><th>Typ</th><th>Imię</th><th>Telefon</th><th>Adres</th><th>Notatka</th></tr></thead><tbody>';
+      list.forEach(b=> html += `<tr><td>${b.time}</td><td>${b.service}</td><td>${b.type}</td><td>${b.name}</td><td>${b.phone}</td><td>${b.addr||''}</td><td>${b.note||''}</td></tr>`);
+      html += '</tbody></table>';
+    }
+    html += '</body></html>';
+    const w = window.open('', '_blank');
+    w.document.write(html); w.document.close(); w.focus(); setTimeout(()=> w.print(), 500);
+  }
+
+  document.getElementById('print-day').addEventListener('click', ()=>{ const date = modalDate.value; if(!date) return alert('Wybierz datę'); printBookingsForDate(date); });
+
+  // Depozyt linkage in booking modal
+  modalPhone.addEventListener('input', tryAttachDepo);
+  modalReg.addEventListener('input', tryAttachDepo);
+
+  function tryAttachDepo(){
+    const phone = modalPhone.value.trim();
+    const reg = modalReg.value.trim().toUpperCase();
+    const found = state.depozyt.find(d => (phone && d.phone===phone) || (reg && d.reg && d.reg.toUpperCase()===reg));
+    if(found){
+      modalDepoLink.innerHTML = `<div class="card"><strong>Powiązany depozyt:</strong> ${found.owner} | ${found.phone} | ${found.reg} <div style="margin-top:6px"><button class="btn secondary" id="open-depo-from-modal">Otwórz depozyt</button></div></div>`;
+      document.getElementById('open-depo-from-modal').onclick = ()=>{ openDepoModal(state.depozyt.indexOf(found)); };
+    } else {
+      modalDepoLink.innerHTML = '';
+    }
+  }
+
+  // initial save
+  save();
+})();
+</script>
+</body>
+</html>
