@@ -1,0 +1,64 @@
+<!-- вставити у <head> або перед основним скриптом -->
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  // 1) Встав свій Firebase config тут:
+  const firebaseConfig = {
+    apiKey: "XXX",
+    authDomain: "XXX.firebaseapp.com",
+    databaseURL: "https://XXX-default-rtdb.firebaseio.com",
+    projectId: "XXX",
+    storageBucket: "XXX.appspot.com",
+    messagingSenderId: "XXX",
+    appId: "XXX"
+  };
+
+  // 2) Ініціалізація
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // 3) Функція: відправити бронь (викликати коли клієнт натиснув "Зберегти")
+  function pushBooking(booking) {
+    // booking = { service, date, time, name, phone, reg, addr, note, type }
+    const ref = db.ref('bookings'); // колекція/вузол bookings
+    const newRef = ref.push();
+    booking.id = newRef.key;
+    booking.createdAt = Date.now();
+    return newRef.set(booking);
+  }
+
+  // 4) Слухач: підписатися на оновлення бронювань (онлайн синхронізація)
+  function listenBookings(onUpdate) {
+    const ref = db.ref('bookings');
+    // коли додали новий
+    ref.on('child_added', snapshot => {
+      const b = snapshot.val();
+      onUpdate('added', b);
+    });
+    // коли змінили
+    ref.on('child_changed', snapshot => {
+      const b = snapshot.val();
+      onUpdate('changed', b);
+    });
+    // коли видалили
+    ref.on('child_removed', snapshot => {
+      const b = snapshot.val();
+      onUpdate('removed', b);
+    });
+  }
+
+  // 5) Використання (приклад)
+  // при збереженні з модального вікна - виклик:
+  // pushBooking({ service: 'Serwis', date: '2025-10-21', time:'10:00', name:'Іван', phone:'600111222', reg:'WP12345', addr:'ul. X', note:'...' });
+
+  // 6) При завантаженні сторінки підписка на оновлення:
+  listenBookings((action, booking)=>{
+    console.log('Booking', action, booking);
+    // тут треба оновити інтерфейс: додати/оновити/видалити слот у календарі
+    // приклад: якщо придивишся до свого коду — в функції renderTimesForDate() додавай/перемальовуй слоти
+  });
+
+  // 7) Додатково: офлайн-підтримка (веб-версія firebase-compat автоматично кешує деякі речі; для повної офлайн-підтримки може знадобитися firestore + enablePersistence)
+</script>
